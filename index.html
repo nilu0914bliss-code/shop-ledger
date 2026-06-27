@@ -166,6 +166,16 @@
       const d = new Date();
       return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
     };
+    const shiftDate = (s, n) => {
+      const [y, m, d] = s.split("-").map(Number);
+      const dt = new Date(y, m - 1, d + n);
+      return `${dt.getFullYear()}-${String(dt.getMonth() + 1).padStart(2, "0")}-${String(dt.getDate()).padStart(2, "0")}`;
+    };
+    const WEEKDAY = ["日", "一", "二", "三", "四", "五", "六"];
+    const dateLabel = (s) => {
+      const [y, m, d] = s.split("-").map(Number);
+      return `${m}/${d}（${WEEKDAY[new Date(y, m - 1, d).getDay()]}）`;
+    };
     const ymOf = (s) => s.substring(0, 7);
     const yearROC = (ym) => parseInt(ym.substring(0, 4)) - 1911;
     const monthOf = (ym) => parseInt(ym.substring(5, 7));
@@ -859,7 +869,17 @@
               <span style={{verticalAlign: "-3px", display: "inline-block", marginRight: 4}}>{I.calendar}</span>
               日期
             </label>
-            <input type="date" value={date} onChange={(e) => setDate(e.target.value)} style={S.input} />
+            <div style={{ display: "flex", alignItems: "stretch", gap: 8 }}>
+              <button onClick={() => setDate(shiftDate(date, -1))} aria-label="前一天"
+                style={{ width: 46, flexShrink: 0, border: "1px solid #e9e0d2", background: "#fff", borderRadius: 8, fontSize: 20, fontWeight: 700, color: "#682723", cursor: "pointer" }}>‹</button>
+              <input type="date" value={date} onChange={(e) => setDate(e.target.value)} style={{ ...S.input, flex: 1, textAlign: "center" }} />
+              <button onClick={() => { if (date < todayStr()) setDate(shiftDate(date, 1)); }} disabled={date >= todayStr()} aria-label="後一天"
+                style={{ width: 46, flexShrink: 0, border: "1px solid #e9e0d2", background: "#fff", borderRadius: 8, fontSize: 20, fontWeight: 700, color: "#682723", cursor: date >= todayStr() ? "default" : "pointer", opacity: date >= todayStr() ? 0.3 : 1 }}>›</button>
+            </div>
+            {date !== todayStr() && (
+              <button onClick={() => setDate(todayStr())}
+                style={{ display: "block", margin: "8px auto 0", background: "none", border: "none", color: "#682723", fontSize: 12.5, fontWeight: 600, cursor: "pointer", textDecoration: "underline", textUnderlineOffset: 2 }}>回到今天</button>
+            )}
           </div>
 
           <div style={S.typeToggle}>
@@ -958,7 +978,7 @@
 
           {todayEntries.length > 0 && (
             <div style={S.section}>
-              <label style={S.label}>當日紀錄（{todayEntries.length} 筆）</label>
+              <label style={S.label}>{dateLabel(date)}的紀錄（{todayEntries.length} 筆）</label>
               <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
                 {todayEntries.map((e) => {
                   const cat = e.type === "income"
